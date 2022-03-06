@@ -12,6 +12,7 @@ from gnuradio import blocks
 import sys
 import math
 import time
+import distutils.util
 
 import numpy as np
 
@@ -256,6 +257,28 @@ class FlowGraph(gr.top_block):
             #source.set_dc_offset_mode(0, True)
             #source.set_dc_offset(0, dc_off)
             #source.set_iq_balance(0, iq_bal)
+        elif config['source'] == 'zeromq-sub':
+            d = config["zeromq-sub-source"]
+
+            from gnuradio import zeromq
+
+            if 'address' not in d:
+                print("No address specified for zeromq sub", file=sys.stderr)
+                exit(1)
+
+            pass_tags = False
+            if 'pass_tags' in d:
+                pass_tags = bool(distutils.util.strtobool(d['pass_tags']))
+
+            timeout = 100
+            if 'timeout' in d:
+                timeout = int(d['timeout'])
+
+            high_water_mark = -1
+            if 'high_water_mark' in d:
+                high_water_mark = int(d['high_water_mark'])
+
+            source = zeromq.sub_source(gr.sizeof_gr_complex, 1, d['address'], timeout, pass_tags, high_water_mark, '')
 
         else:
             if sample_format == "cu8":
